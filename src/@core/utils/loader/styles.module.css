@@ -1,0 +1,13 @@
+.colorChange {
+    mask: linear-gradient(to top, white, black);
+    animation: colorChange 0.7s infinite alternate;
+  }
+
+@keyframes colorChange {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}

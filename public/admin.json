@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1289,
+    "name": "John Doe",
+    "email": "DqkR8@example.com",
+    "level": "Senior",
+    "role": "Human Resource",
+    "status": true
+  },
+  {
+    "id": 2412,
+    "name": "Sarah Doe",
+    "email": "sara@example.com",
+    "level": "Mid-Level",
+    "role": "Lead Dev",
+    "status": true
+  }
+]
