@@ -427,7 +427,7 @@ const Terms: React.FC = () => {
             2 The Rock Drive, Lekki Phase 1,Lagos State." />
         </ListItem>
         <ListItem sx={{ display: "list-item" }}>
-          <ListItemText primary="Phone: +234-803-391-8955" />
+          <ListItemText primary="Phone: +234 814 288 7101" />
         </ListItem>
       </List>
 

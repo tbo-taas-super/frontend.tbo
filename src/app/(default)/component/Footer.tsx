@@ -62,7 +62,7 @@ const Footer: React.FC = () => {
               <Stack>
              
                 <Typography sx={{ fontSize: { xs: ".75rem", sm: ".875rem" } }}>
-                +234-803-391-8955
+                +234 814 288 7101
                 </Typography>
                 <Typography sx={{ fontSize: { xs: ".75rem", sm: ".875rem" } }}>
                

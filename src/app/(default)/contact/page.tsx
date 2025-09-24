@@ -119,7 +119,7 @@ const Contact: React.FC = () => {
               <Typography sx={{ fontWeight: "bold", mb: 2 }}>
                 Call Us
               </Typography>
-              <Typography>+234-803-391-8955</Typography>
+              <Typography>+234 814 288 7101</Typography>
               {/* <Typography>+234-802-555-0178</Typography> */}
             </Stack>
           </Box>
