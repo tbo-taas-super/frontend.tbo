@@ -458,3 +458,61 @@ export function ApplicationViewModal({ application, open, onClose }: Application
     </Dialog>
   );
 }
+interface ApplicationActionModalProps {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
+  message: string;
+  confirmText: string;
+  confirmColor?: "primary" | "success" | "error";
+  application: UnifiedApplication;
+}
+export function ApplicationActionModal({
+  open,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  confirmText,
+  confirmColor = "primary",
+  application,
+}: ApplicationActionModalProps) {
+  const [notes, setNotes] = useState("");
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{title}</DialogTitle>
+      <DialogContent>
+        <Box sx={{ py: 2 }}>
+          <Typography variant="body1" sx={{ mb: 3 }}>
+            {message}
+          </Typography>
+          <Box sx={{ p: 2, bgcolor: "grey.50", borderRadius: 1, mb: 2 }}>
+            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+              {application.roleAppliedFor}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {application.companyName}
+            </Typography>
+          </Box>
+          <TextField
+            label="Additional Notes (Optional)"
+            fullWidth
+            multiline
+            rows={3}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Add any additional comments..."
+          />
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button variant="contained" color={confirmColor} onClick={onConfirm}>
+          {confirmText}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
