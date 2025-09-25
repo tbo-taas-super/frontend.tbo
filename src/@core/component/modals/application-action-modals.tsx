@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -25,11 +26,8 @@ import {
   LocationOn as LocationIcon,
   AttachMoney as SalaryIcon,
   Email as EmailIcon,
-  Phone as PhoneIcon,
   CalendarToday as CalendarIcon,
   Close as CloseIcon,
-  Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon,
 } from "@mui/icons-material";
 import { expressInterest } from "@/@core/services/clientTalent";
 
@@ -77,7 +75,6 @@ export function ApplicationViewModal({ application, open, onClose }: Application
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [showCandidateDetails, setShowCandidateDetails] = useState(false);
 
   // Debug application data on mount
   useEffect(() => {
@@ -179,11 +176,18 @@ export function ApplicationViewModal({ application, open, onClose }: Application
     }
   };
 
-  const toggleCandidateDetails = () => {
-    setShowCandidateDetails((prev) => !prev);
+  // Mask email to show partial information
+  const maskEmail = (email: string | undefined | null) => {
+    if (!email) return "Not specified";
+    const [localPart, domain] = email.split("@");
+    return `${localPart.slice(0, localPart.indexOf("."))}...@${domain}`;
   };
 
-  const avatarSrc = application.companyLogo || application.profile_image || undefined;
+  // Get first name from applicant_name
+  const getFirstName = (name: string | undefined | null) => {
+    if (!name) return "Unknown";
+    return name.split(" ")[0];
+  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -199,7 +203,7 @@ export function ApplicationViewModal({ application, open, onClose }: Application
         <Box sx={{ py: 2 }}>
           {/* Header */}
           <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, mb: 3 }}>
-            <Avatar sx={{ width: 64, height: 64 }} src={avatarSrc}>
+            <Avatar sx={{ width: 64, height: 64 }} src={application.companyLogo || application.profile_image || undefined}>
               {application.companyName?.[0] || "?"}
             </Avatar>
             <Box sx={{ flex: 1 }}>
@@ -210,12 +214,6 @@ export function ApplicationViewModal({ application, open, onClose }: Application
                 {application.companyName || "Not specified"}
               </Typography>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                  <LocationIcon sx={{ fontSize: 16, color: "text.secondary" }} />
-                  <Typography variant="body2" color="text.secondary">
-                    {application.location || "Not specified"}
-                  </Typography>
-                </Box>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                   <CalendarIcon sx={{ fontSize: 16, color: "text.secondary" }} />
                   <Typography variant="body2" color="text.secondary">
@@ -273,98 +271,25 @@ export function ApplicationViewModal({ application, open, onClose }: Application
                   </Box>
                 </Grid>
               </Grid>
-              {(application.cv_upload || application.cover_letter_upload) && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Documents
-                  </Typography>
-                  {application.cv_upload && (
-                    <Typography variant="body2">
-                      <a href={application.cv_upload} target="_blank" rel="noopener noreferrer">
-                        View CV
-                      </a>
-                    </Typography>
-                  )}
-                  {application.cover_letter_upload && (
-                    <Typography variant="body2">
-                      <a href={application.cover_letter_upload} target="_blank" rel="noopener noreferrer">
-                        View Cover Letter
-                      </a>
-                    </Typography>
-                  )}
-                </Box>
-              )}
             </CardContent>
           </Card>
 
           {/* Candidate Information */}
           <Card sx={{ mb: 3 }}>
             <CardContent>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2, justifyContent: "space-between" }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <BusinessIcon sx={{ color: "primary.main" }} />
-                  <Typography variant="subtitle2">Candidate Information</Typography>
-                </Box>
-                <Button
-                  onClick={toggleCandidateDetails}
-                  startIcon={showCandidateDetails ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                  size="small"
-                >
-                  {showCandidateDetails ? "Hide Details" : "Show Details"}
-                </Button>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+                <BusinessIcon sx={{ color: "primary.main" }} />
+                <Typography variant="subtitle2">Candidate Information</Typography>
               </Box>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontWeight: 500,
-                    filter: !showCandidateDetails ? "blur(4px)" : "none",
-                    userSelect: !showCandidateDetails ? "none" : "auto",
-                  }}
-                >
-                  {application.category === "Applied"
-                    ? application.applicant_name || "Unknown"
-                    : application.talent_name || application.name || "Unknown"}
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  {getFirstName(application.category === "Applied" ? application.applicant_name : application.talent_name || application.name)}
                 </Typography>
                 {application.email && (
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <EmailIcon sx={{ fontSize: 16, color: "text.secondary" }} />
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        filter: !showCandidateDetails ? "blur(4px)" : "none",
-                        userSelect: !showCandidateDetails ? "none" : "auto",
-                      }}
-                    >
-                      {application.email}
-                    </Typography>
-                  </Box>
-                )}
-                {application.designation && (
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <WorkIcon sx={{ fontSize: 16, color: "text.secondary" }} />
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        filter: !showCandidateDetails ? "blur(4px)" : "none",
-                        userSelect: !showCandidateDetails ? "none" : "auto",
-                      }}
-                    >
-                      {application.designation}
-                    </Typography>
-                  </Box>
-                )}
-                {application.years_experience != null && (
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <CalendarIcon sx={{ fontSize: 16, color: "text.secondary" }} />
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        filter: !showCandidateDetails ? "blur(4px)" : "none",
-                        userSelect: !showCandidateDetails ? "none" : "auto",
-                      }}
-                    >
-                      {application.years_experience} years experience
+                    <Typography variant="body2">
+                      {maskEmail(application.email)}
                     </Typography>
                   </Box>
                 )}
@@ -387,7 +312,7 @@ export function ApplicationViewModal({ application, open, onClose }: Application
           )}
 
           {/* Interest Notes Input for Applied or Recommended Candidates */}
-          {(application.category === "Applied" || application.category === "Recommended") && (
+          {/* {(application.category === "Applied" || application.category === "Recommended") && (
             <Card sx={{ mt: 3 }}>
               <CardContent>
                 <Typography variant="subtitle2" sx={{ mb: 2 }}>
@@ -404,7 +329,7 @@ export function ApplicationViewModal({ application, open, onClose }: Application
                 />
               </CardContent>
             </Card>
-          )}
+          )} */}
         </Box>
       </DialogContent>
       <DialogActions sx={{ p: 3, pt: 0 }}>
@@ -458,6 +383,7 @@ export function ApplicationViewModal({ application, open, onClose }: Application
     </Dialog>
   );
 }
+
 interface ApplicationActionModalProps {
   open: boolean;
   onClose: () => void;
@@ -468,6 +394,7 @@ interface ApplicationActionModalProps {
   confirmColor?: "primary" | "success" | "error";
   application: UnifiedApplication;
 }
+
 export function ApplicationActionModal({
   open,
   onClose,
