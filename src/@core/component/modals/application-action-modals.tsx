@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -62,6 +62,7 @@ interface UnifiedApplication {
   job_id?: number;
   job_title?: string;
   talent_id?: number;
+  applicant_id?: number;
   name?: string;
 }
 
@@ -78,19 +79,24 @@ export function ApplicationViewModal({ application, open, onClose }: Application
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showCandidateDetails, setShowCandidateDetails] = useState(false);
 
+  // Debug application data on mount
+  useEffect(() => {
+    console.log("Application data:", application);
+  }, [application]);
+
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Hired":
+    switch (status?.toLowerCase()) {
+      case "hired":
         return { bgcolor: "#ECFDF5", color: "#065F46" };
-      case "Interviewed":
+      case "interviewed":
         return { bgcolor: "#F0F9FF", color: "#0C4A6E" };
-      case "Shortlisted":
+      case "shortlisted":
         return { bgcolor: "#FFFBEB", color: "#92400E" };
-      case "Pending":
+      case "pending":
         return { bgcolor: "#F3F4F6", color: "#374151" };
-      case "Recommended":
+      case "recommended":
         return { bgcolor: "#F3E8FF", color: "#6B46C1" };
-      case "Processing":
+      case "processing":
         return { bgcolor: "#FEF3C7", color: "#92400E" };
       default:
         return { bgcolor: "#F3F4F6", color: "#374151" };
@@ -98,24 +104,44 @@ export function ApplicationViewModal({ application, open, onClose }: Application
   };
 
   const getTypeColor = (type: string) => {
-    switch (type) {
-      case "Direct Hire":
-      case "Direct Application":
+    switch (type?.toLowerCase()) {
+      case "direct hire":
+      case "direct application":
         return { bgcolor: "#EFF6FF", color: "#1E40AF" };
-      case "Recommendation":
+      case "recommendation":
         return { bgcolor: "#ECFDF5", color: "#065F46" };
-      case "Contract":
-      case "Interest":
+      case "contract":
+      case "interest":
         return { bgcolor: "#FEF3C7", color: "#92400E" };
       default:
         return { bgcolor: "#F3F4F6", color: "#374151" };
     }
   };
 
+  const effectiveTalentId = application.category === "Applied" ? application.applicant_id : application.talent_id;
+  const isExpressInterestDisabled = !effectiveTalentId || !application.job_id || !application.job_title;
+
   const handleExpressInterest = async () => {
-    if (!application.talent_id || !application.job_id || !application.job_title) {
-      console.log("Missing required fields:", { talent_id: application.talent_id, job_id: application.job_id, job_title: application.job_title });
-      setError("Missing required fields for expressing interest");
+    if (isExpressInterestDisabled) {
+      const missingFields = [
+        !effectiveTalentId && (application.category === "Applied" ? "applicant ID" : "talent ID"),
+        !application.job_id && "job ID",
+        !application.job_title && "job title",
+      ].filter(Boolean).join(", ");
+      console.log("Missing required fields:", {
+        talent_id: effectiveTalentId,
+        job_id: application.job_id,
+        job_title: application.job_title,
+        category: application.category,
+        application,
+      });
+      setError(
+        `Cannot express interest: missing ${missingFields}${
+          application.category === "Recommended" && !application.job_id
+            ? ". Job ID is required for recommended candidates. Please contact support to update this application."
+            : "."
+        }`
+      );
       return;
     }
 
@@ -124,20 +150,19 @@ export function ApplicationViewModal({ application, open, onClose }: Application
     setSuccessMessage(null);
 
     try {
-      await expressInterest(application.talent_id, {
+      const response = await expressInterest(effectiveTalentId, {
         interested: true,
         interest_type: "existing_job",
         job_id: application.job_id,
         job_title: application.job_title,
         request_type: "Direct Hire",
-        notes: interestNotes || application.professional_summary || undefined,
+        notes: interestNotes || application.professional_summary || application.notes || undefined,
       });
-      console.log("Express interest succeeded");
-      setSuccessMessage("Interest expressed successfully!");
+      console.log("Express interest succeeded:", response);
+      setSuccessMessage(`Interest successfully expressed for ${application.job_title || "the position"}!`);
       setInterestNotes("");
-      onClose();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to express interest";
+      const errorMessage = err instanceof Error ? err.message : "Failed to express interest. Please try again.";
       console.error("Express interest failed:", errorMessage);
       setError(errorMessage);
     } finally {
@@ -175,14 +200,14 @@ export function ApplicationViewModal({ application, open, onClose }: Application
           {/* Header */}
           <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, mb: 3 }}>
             <Avatar sx={{ width: 64, height: 64 }} src={avatarSrc}>
-              {application.companyName[0]}
+              {application.companyName?.[0] || "?"}
             </Avatar>
             <Box sx={{ flex: 1 }}>
               <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
-                {application.roleAppliedFor}
+                {application.roleAppliedFor || "Not specified"}
               </Typography>
               <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
-                {application.companyName}
+                {application.companyName || "Not specified"}
               </Typography>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -194,18 +219,26 @@ export function ApplicationViewModal({ application, open, onClose }: Application
                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                   <CalendarIcon sx={{ fontSize: 16, color: "text.secondary" }} />
                   <Typography variant="body2" color="text.secondary">
-                    Applied on {application.dateOfApplication}
+                    Applied on {application.dateOfApplication || "Not specified"}
                   </Typography>
                 </Box>
               </Box>
               <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
-                <Chip label={application.status} size="small" sx={getStatusColor(application.status)} />
-                <Chip label={application.applicationType} size="small" sx={getTypeColor(application.applicationType)} />
+                <Chip
+                  label={application.status || "Unknown"}
+                  size="small"
+                  sx={getStatusColor(application.status || "Unknown")}
+                />
+                <Chip
+                  label={application.applicationType || "Unknown"}
+                  size="small"
+                  sx={getTypeColor(application.applicationType || "Unknown")}
+                />
               </Box>
               {application.skills && application.skills.length > 0 && (
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                   {application.skills.map((skill, index) => (
-                    <Chip key={index} label={skill} size="small" variant="outlined" />
+                    <Chip key={index} label={skill || "Unknown"} size="small" variant="outlined" />
                   ))}
                 </Box>
               )}
@@ -220,14 +253,14 @@ export function ApplicationViewModal({ application, open, onClose }: Application
                 <Typography variant="subtitle2">Job Details</Typography>
               </Box>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                {application.jobDescription}
+                {application.jobDescription || "No description provided"}
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12} md= {6}>
+                <Grid item xs={12} md={6}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <SalaryIcon sx={{ fontSize: 16, color: "text.secondary" }} />
                     <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                      {application.salary}
+                      {application.salary || "Not specified"}
                     </Typography>
                   </Box>
                 </Grid>
@@ -272,18 +305,25 @@ export function ApplicationViewModal({ application, open, onClose }: Application
                   <BusinessIcon sx={{ color: "primary.main" }} />
                   <Typography variant="subtitle2">Candidate Information</Typography>
                 </Box>
+                <Button
+                  onClick={toggleCandidateDetails}
+                  startIcon={showCandidateDetails ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                  size="small"
+                >
+                  {showCandidateDetails ? "Hide Details" : "Show Details"}
+                </Button>
               </Box>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 <Typography
                   variant="body2"
                   sx={{
                     fontWeight: 500,
-                    filter: application.category === "Recommended" && !showCandidateDetails ? "blur(4px)" : "blur(4px)",
-                    userSelect: application.category === "Recommended" && !showCandidateDetails ? "none" : "none",
+                    filter: !showCandidateDetails ? "blur(4px)" : "none",
+                    userSelect: !showCandidateDetails ? "none" : "auto",
                   }}
                 >
                   {application.category === "Applied"
-                    ? application.applicant_name
+                    ? application.applicant_name || "Unknown"
                     : application.talent_name || application.name || "Unknown"}
                 </Typography>
                 {application.email && (
@@ -292,8 +332,8 @@ export function ApplicationViewModal({ application, open, onClose }: Application
                     <Typography
                       variant="body2"
                       sx={{
-                        filter: application.category === "Recommended" && !showCandidateDetails ? "blur(4px)" : "blur(4px)",
-                        userSelect: application.category === "Recommended" && !showCandidateDetails ? "none" : "none",
+                        filter: !showCandidateDetails ? "blur(4px)" : "none",
+                        userSelect: !showCandidateDetails ? "none" : "auto",
                       }}
                     >
                       {application.email}
@@ -306,22 +346,22 @@ export function ApplicationViewModal({ application, open, onClose }: Application
                     <Typography
                       variant="body2"
                       sx={{
-                        filter: application.category === "Recommended" && !showCandidateDetails ? "blur(4px)" : "none",
-                        userSelect: application.category === "Recommended" && !showCandidateDetails ? "none" : "auto",
+                        filter: !showCandidateDetails ? "blur(4px)" : "none",
+                        userSelect: !showCandidateDetails ? "none" : "auto",
                       }}
                     >
                       {application.designation}
                     </Typography>
                   </Box>
                 )}
-                {application.years_experience !== null && (
+                {application.years_experience != null && (
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <CalendarIcon sx={{ fontSize: 16, color: "text.secondary" }} />
                     <Typography
                       variant="body2"
                       sx={{
-                        filter: application.category === "Recommended" && !showCandidateDetails ? "blur(4px)" : "none",
-                        userSelect: application.category === "Recommended" && !showCandidateDetails ? "none" : "auto",
+                        filter: !showCandidateDetails ? "blur(4px)" : "none",
+                        userSelect: !showCandidateDetails ? "none" : "auto",
                       }}
                     >
                       {application.years_experience} years experience
@@ -340,8 +380,28 @@ export function ApplicationViewModal({ application, open, onClose }: Application
                   {application.category === "Recommended" ? "Professional Summary" : "Application Notes"}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {application.notes || application.professional_summary || application.applicationNotes}
+                  {application.notes || application.professional_summary || application.applicationNotes || "No notes available"}
                 </Typography>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Interest Notes Input for Applied or Recommended Candidates */}
+          {(application.category === "Applied" || application.category === "Recommended") && (
+            <Card sx={{ mt: 3 }}>
+              <CardContent>
+                <Typography variant="subtitle2" sx={{ mb: 2 }}>
+                  Express Interest Notes
+                </Typography>
+                <TextField
+                  label="Notes (Optional)"
+                  fullWidth
+                  multiline
+                  rows={3}
+                  value={interestNotes}
+                  onChange={(e) => setInterestNotes(e.target.value)}
+                  placeholder="Add any additional comments for expressing interest..."
+                />
               </CardContent>
             </Card>
           )}
@@ -351,12 +411,17 @@ export function ApplicationViewModal({ application, open, onClose }: Application
         <Button variant="outlined" onClick={onClose} disabled={isSubmitting}>
           Close
         </Button>
-        {application.category === "Recommended" && (
+        {(application.category === "Applied" || application.category === "Recommended") && (
           <Button
             variant="contained"
             color="primary"
             onClick={handleExpressInterest}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isExpressInterestDisabled}
+            title={isExpressInterestDisabled ? `Missing required fields: ${[
+              !effectiveTalentId && (application.category === "Applied" ? "applicant ID" : "talent ID"),
+              !application.job_id && "job ID",
+              !application.job_title && "job title",
+            ].filter(Boolean).join(", ")}` : "Express interest in this candidate"}
           >
             {isSubmitting ? <CircularProgress size={24} /> : "I am Interested"}
           </Button>
@@ -364,92 +429,32 @@ export function ApplicationViewModal({ application, open, onClose }: Application
       </DialogActions>
       <Snackbar
         open={!!successMessage}
-        autoHideDuration={6000}
+        autoHideDuration={8000}
         onClose={() => handleCloseSnackbar("success")}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
           onClose={() => handleCloseSnackbar("success")}
           severity="success"
-          sx={{ width: "100%" }}
+          sx={{ width: "100%", fontWeight: 600, bgcolor: "#065F46", color: "#FFFFFF" }}
         >
           {successMessage}
         </Alert>
       </Snackbar>
       <Snackbar
         open={!!error}
-        autoHideDuration={6000}
+        autoHideDuration={8000}
         onClose={() => handleCloseSnackbar("error")}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
           onClose={() => handleCloseSnackbar("error")}
           severity="error"
-          sx={{ width: "100%" }}
+          sx={{ width: "100%", fontWeight: 600 }}
         >
           {error}
         </Alert>
       </Snackbar>
-    </Dialog>
-  );
-}
-
-interface ApplicationActionModalProps {
-  open: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  title: string;
-  message: string;
-  confirmText: string;
-  confirmColor?: "primary" | "success" | "error";
-  application: UnifiedApplication;
-}
-
-export function ApplicationActionModal({
-  open,
-  onClose,
-  onConfirm,
-  title,
-  message,
-  confirmText,
-  confirmColor = "primary",
-  application,
-}: ApplicationActionModalProps) {
-  const [notes, setNotes] = useState("");
-
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{title}</DialogTitle>
-      <DialogContent>
-        <Box sx={{ py: 2 }}>
-          <Typography variant="body1" sx={{ mb: 3 }}>
-            {message}
-          </Typography>
-          <Box sx={{ p: 2, bgcolor: "grey.50", borderRadius: 1, mb: 2 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              {application.roleAppliedFor}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {application.companyName}
-            </Typography>
-          </Box>
-          <TextField
-            label="Additional Notes (Optional)"
-            fullWidth
-            multiline
-            rows={3}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Add any additional comments..."
-          />
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button variant="contained" color={confirmColor} onClick={onConfirm}>
-          {confirmText}
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 }
