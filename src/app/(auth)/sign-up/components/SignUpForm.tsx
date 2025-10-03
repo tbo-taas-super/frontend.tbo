@@ -224,9 +224,9 @@ const SignUpForm: React.FC = () => {
           <Link href="/">
             <Image
               style={{ marginBottom: '20px' }}
-              src="TBO.svg"
-              width={161}
-              height={53}
+              src={'/talotamain.svg'}
+              width={361}
+              height={124.2}
               alt="TBO Icon"
             />
           </Link>

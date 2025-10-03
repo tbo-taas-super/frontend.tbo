@@ -500,7 +500,14 @@ const filteredOpportunities = useMemo(() => {
                 <CardContent sx={{ p: 3, flex: 1, display: "flex", flexDirection: "column" }}>
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                      <Avatar src={opportunity.client?.company_logo || ""} sx={{ width: 48, height: 48 }}>
+                    <Avatar
+                        src={opportunity.client?.company_logo || ""}
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          filter: opportunity.client?.company_logo ? "blur(10px)" : "none", // Apply blur only if logo exists
+                        }}
+                      >
                         {opportunity.client?.company_name?.[0] || "C"}
                       </Avatar>
                       <Box>

@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { Box, Grid, TextField, Typography, Button } from "@mui/material"
+import { Box, Grid, TextField, Typography, Button, Snackbar, Alert } from "@mui/material"
 import DocumentUpload from "./components/document-upload"
 import { useEffect, useState } from "react"
 import { getCurrentUser, updateUser, uploadFile } from "@/@core/services/user"
@@ -12,6 +12,12 @@ interface FileData {
   type: string
 }
 
+interface ToastState {
+  open: boolean
+  message: string
+  severity: "success" | "error"
+}
+
 const PortfolioTab = () => {
   const [userId, setUserId] = useState<number | null>(null)
   const [projectScreenshots, setProjectScreenshots] = useState<FileData[]>([])
@@ -19,8 +25,9 @@ const PortfolioTab = () => {
   const [portfolioLink, setPortfolioLink] = useState<string>("")
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [toast, setToast] = useState<ToastState>({ open: false, message: "", severity: "success" })
 
-  // Utility to extract file info from URL (similar to OtherInformationTab)
+  // Utility to extract file info from URL
   const extractFileInfo = (url: string, defaultName: string, defaultType: string): FileData | null => {
     if (!url) return null
 
@@ -43,6 +50,11 @@ const PortfolioTab = () => {
     return { url, name: fileName, type: fileType }
   }
 
+  // Toast handler
+  const handleCloseToast = () => {
+    setToast({ ...toast, open: false })
+  }
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -51,7 +63,6 @@ const PortfolioTab = () => {
         const user = res.user
         if (user?.id) {
           setUserId(user.id)
-          // Convert URLs to FileData objects
           setProjectScreenshots(
             (user.project_screenshots || []).map((url: string, i: number) =>
               extractFileInfo(url, `Screenshot-${i + 1}.png`, "image/png")
@@ -66,6 +77,7 @@ const PortfolioTab = () => {
         }
       } catch (error) {
         console.error("Failed to fetch user data:", error)
+        setToast({ open: true, message: "Failed to load user data", severity: "error" })
       } finally {
         setIsLoading(false)
       }
@@ -89,10 +101,11 @@ const PortfolioTab = () => {
       }
       const newScreenshots = [...projectScreenshots, fileData]
       setProjectScreenshots(newScreenshots)
-      // Store only URLs in backend
       await updateUser(userId, { project_screenshots: newScreenshots.map((item) => item.url) })
+      setToast({ open: true, message: "Project screenshot uploaded successfully", severity: "success" })
     } catch (error) {
       console.error("Upload or update failed:", error)
+      setToast({ open: true, message: "Failed to upload project screenshot", severity: "error" })
     }
   }
 
@@ -102,8 +115,10 @@ const PortfolioTab = () => {
     setProjectScreenshots(newScreenshots)
     try {
       await updateUser(userId, { project_screenshots: newScreenshots.map((item) => item.url) })
+      setToast({ open: true, message: "Project screenshot removed successfully", severity: "success" })
     } catch (error) {
       console.error("Failed to update screenshots:", error)
+      setToast({ open: true, message: "Failed to remove project screenshot", severity: "error" })
     }
   }
 
@@ -123,8 +138,10 @@ const PortfolioTab = () => {
       }
       setWorkSample(fileData)
       await updateUser(userId, { work_sample_upload: result.url })
+      setToast({ open: true, message: "Work sample uploaded successfully", severity: "success" })
     } catch (error) {
       console.error("Upload or update failed:", error)
+      setToast({ open: true, message: "Failed to upload work sample", severity: "error" })
     }
   }
 
@@ -133,8 +150,10 @@ const PortfolioTab = () => {
     setWorkSample(null)
     try {
       await updateUser(userId, { work_sample_upload: "" })
+      setToast({ open: true, message: "Work sample removed successfully", severity: "success" })
     } catch (error) {
       console.error("Failed to remove work sample:", error)
+      setToast({ open: true, message: "Failed to remove work sample", severity: "error" })
     }
   }
 
@@ -143,10 +162,13 @@ const PortfolioTab = () => {
     setIsSaving(true)
     try {
       await updateUser(userId, { portfolio_link: portfolioLink })
+      setToast({ open: true, message: "Portfolio link saved successfully", severity: "success" })
     } catch (error) {
       console.error("Failed to update portfolio link:", error)
+      setToast({ open: true, message: "Failed to save portfolio link", severity: "error" })
+    } finally {
+      setIsSaving(false)
     }
-    setIsSaving(false)
   }
 
   if (isLoading) {
@@ -231,6 +253,18 @@ const PortfolioTab = () => {
           </Grid>
         </Grid>
       </Box>
+
+      {/* Toast Notification */}
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={6000}
+        onClose={handleCloseToast}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert onClose={handleCloseToast} severity={toast.severity} sx={{ width: "100%" }}>
+          {toast.message}
+        </Alert>
+      </Snackbar>
     </section>
   )
 }

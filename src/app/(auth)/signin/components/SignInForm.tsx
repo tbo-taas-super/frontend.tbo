@@ -99,9 +99,9 @@ const SigninForm: FC = () => {
 
         <Link href="/">
           <Image 
-            src={'/TBO.svg'}
-            width={225.4}
-            height={74.2}
+            src={'/talotamain.svg'}
+            width={325.4}
+            height={124.2}
             alt={'TBO logo'}
             style={{ marginBottom: '10px' }}
           />

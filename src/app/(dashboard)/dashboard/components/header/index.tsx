@@ -33,9 +33,9 @@ const DashboardHeader: React.FC<{
       >
         <Link href='/'>
           <Image
-            src={'/TBO.svg'}
+            src={'/talotamain.svg'}
             width={203.4}
-            height={46.8}
+            height={56.8}
             alt={'TBO logo'}
           />
         </Link>

@@ -23,6 +23,7 @@ import { useRouter, usePathname } from "next/navigation";
 
 // ** Logo Import
 import Logo from "../../../../public/TBO.svg";
+import Talora from "../../../../public/talotamain.svg"
 import Bitmap from "../assets/Bitmap.svg";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { Dashboard, ExitToApp, Person } from "@mui/icons-material";
@@ -122,7 +123,7 @@ function Header() {
         >
           <Box>
             <Link href="/">
-              <StyledImage src={Logo.src} alt="TBO Logo" />
+              <StyledImage src={Talora.src} alt="TBO Logo" />
             </Link>
           </Box>
 
