@@ -196,7 +196,14 @@ export function OpportunityDetailModal({
           <Card sx={{ mb: 3, bgcolor: "#FEF2F2" }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: "flex", alignItems: "flex-start", gap: 3 }}>
-                <Avatar src={opportunity.client?.company_logo || ""} sx={{ width: 80, height: 80 }}>
+              <Avatar
+                  src={opportunity.client?.company_logo || ""}
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    filter: opportunity.client?.company_logo ? "blur(10px)" : "none", // Apply blur only if logo exists
+                  }}
+                >
                   {opportunity.client?.company_name?.[0] || "C"}
                 </Avatar>
                 <Box sx={{ flex: 1 }}>
