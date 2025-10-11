@@ -95,6 +95,7 @@ export interface UpdateUserPayload {
   professional_summary?: string; // Add professional summary
   skills?: string[]; // Skills as an array of strings
   education?: string;
+  years_experience?: number | null;
   company_logo?: File | string;
   company_name?: string;
   company_email_address?: string;

@@ -66,23 +66,23 @@ export function TalentProfile({
   const [selectedJob, setSelectedJob] = useState("");
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
-  // Helper function to get the first name
-  const getFirstName = (name: string | undefined): string => {
-    if (!name || name.trim() === "") return "Unnamed Talent";
-    return name.split(" ")[0].trim() || "Unnamed Talent";
-  };
-
-  // Helper function to get the second name (if any) for blurring
-  const getSecondName = (name: string | undefined): string | null => {
-    if (!name || name.trim() === "") return null;
-    const parts = name.split(" ");
-    return parts.length > 1 ? parts.slice(1).join(" ").trim() : null;
-  };
-
-  // Helper function to get the avatar initial
-  const getAvatarInitial = (name: string | undefined): string => {
+  // Helper function to compute initials from the name with a space
+  const getInitials = (name: string | undefined): string => {
     if (!name || name.trim() === "") return "T";
-    return name.split(" ")[0].charAt(0).toUpperCase() || "T";
+    const nameParts = name.trim().split(" ");
+    if (nameParts.length === 1) {
+      return nameParts[0].charAt(0).toUpperCase();
+    }
+    return (
+      nameParts[0].charAt(0).toUpperCase() +
+      " " +
+      (nameParts[1] ? nameParts[1].charAt(0).toUpperCase() : "")
+    );
+  };
+
+  // Helper function for avatar initials (no space)
+  const getAvatarInitial = (name: string | undefined): string => {
+    return getInitials(name).replace(" ", "");
   };
 
   const handleInterestedClick = () => {
@@ -108,7 +108,7 @@ export function TalentProfile({
       });
       setJobSelectionModalOpen(false);
       setShowSuccessMessage(true);
-      toast.success(`Successfully added ${getFirstName(talent.name)} to an existing job`, { toastId: "add-existing-job" });
+      toast.success(`Successfully added ${getInitials(talent.name)} to an existing job`, { toastId: "add-existing-job" });
       setTimeout(() => {
         setShowSuccessMessage(false);
         onClose();
@@ -124,7 +124,7 @@ export function TalentProfile({
     });
     setNewJobMessageModalOpen(false);
     setShowSuccessMessage(true);
-    toast.success(`Successfully expressed interest in ${getFirstName(talent.name)} for a new job`, { toastId: "add-new-job" });
+    toast.success(`Successfully expressed interest in ${getInitials(talent.name)} for a new job`, { toastId: "add-new-job" });
     setTimeout(() => {
       setShowSuccessMessage(false);
       onClose();
@@ -167,12 +167,7 @@ export function TalentProfile({
               </Avatar>
               <Box sx={{ flex: 1 }}>
                 <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
-                  {getFirstName(talent.name)}
-                  {getSecondName(talent.name) && (
-                    <span style={{ filter: "blur(5px)", marginLeft: "8px" }}>
-                      {getSecondName(talent.name)}
-                    </span>
-                  )}
+                  {getInitials(talent.name)}
                 </Typography>
                 <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
                   {talent.designation}
@@ -317,15 +312,13 @@ export function TalentProfile({
           </Button>
         </DialogActions>
       </Dialog>
-
       <InterestModal
         open={interestModalOpen}
         onClose={() => setInterestModalOpen(false)}
         onNewJob={handleNewJobClick}
         onExistingJob={handleExistingJobClick}
-        talentName={getFirstName(talent.name)}
+        talentName={getInitials(talent.name)}
       />
-
       <NewJobMessageModal
         open={newJobMessageModalOpen}
         onClose={() => {
@@ -334,7 +327,6 @@ export function TalentProfile({
         }}
         onContinue={handleNewJobContinue}
       />
-
       <JobSelectionModal
         open={jobSelectionModalOpen}
         onClose={() => setJobSelectionModalOpen(false)}
@@ -342,10 +334,9 @@ export function TalentProfile({
         selectedJob={selectedJob}
         onJobChange={setSelectedJob}
         jobs={jobs}
-        talentName={getFirstName(talent.name)}
+        talentName={getInitials(talent.name)}
       />
-
-      <SuccessModal open={showSuccessMessage} talentName={getFirstName(talent.name)} />
+      <SuccessModal open={showSuccessMessage} talentName={getInitials(talent.name)} />
     </>
   );
 }
