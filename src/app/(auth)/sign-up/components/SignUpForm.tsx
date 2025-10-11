@@ -349,7 +349,7 @@ const SignUpForm: React.FC = () => {
             >
               Password
             </Box>
-            <TextField
+           <TextField
               {...register('password', {
                 required: 'Password is required',
                 minLength: {
@@ -357,8 +357,8 @@ const SignUpForm: React.FC = () => {
                   message: 'Password must be at least 8 characters',
                 },
                 pattern: {
-                  value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/,
-                  message: 'Must include uppercase, lowercase, number, and special character (@$!%*?&.)',
+                  value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#.])[A-Za-z\d@$!%*?&#.]{8,}$/,
+                  message: 'Must include uppercase, lowercase, number, and special character (@$!%*?&#.)',
                 },
               })}
               type={showPassword ? 'text' : 'password'}
@@ -382,7 +382,7 @@ const SignUpForm: React.FC = () => {
               {errors.password?.message as string}
             </p>
             <p style={passwordHintStyle}>
-              Password must contain: 8+ characters, uppercase, lowercase, number, and special character (@$!%*?&)
+              Password must contain: 8+ characters, uppercase, lowercase, number, and special character (@$!%*?&#)
             </p>
           </Box>
 

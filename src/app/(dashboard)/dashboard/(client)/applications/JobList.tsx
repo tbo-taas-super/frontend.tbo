@@ -373,64 +373,54 @@ const stats = [
           </Box>
 
           {/* Table */}
-          <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #E5E7EB" }}>
-            <Table>
-              <TableHead sx={{ bgcolor: "#F9FAFB" }}>
-                <TableRow>
-                  <TableCell>Job ID</TableCell>
-                  <TableCell>Title</TableCell>
-                  <TableCell>Applications</TableCell>
-                  <TableCell>Posting Date</TableCell>
-                  <TableCell>Expiration Date</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Action</TableCell>
+       <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #E5E7EB" }}>
+        <Table>
+          <TableHead sx={{ bgcolor: "#F9FAFB" }}>
+            <TableRow>
+              <TableCell>S/N</TableCell> {/* Changed from "Job ID" to "sn" */}
+              <TableCell>Title</TableCell>
+              <TableCell>Applications</TableCell>
+              <TableCell>Posting Date</TableCell>
+              <TableCell>Expiration Date</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Action</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {paginatedData.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} align="center">
+                  No jobs found
+                </TableCell>
+              </TableRow>
+            ) : (
+              paginatedData.map((job: Job, index: number) => (
+                <TableRow key={job.id} hover>
+                <TableCell sx={{ fontWeight: 500 }}>{index + 1}</TableCell> 
+                  <TableCell>
+                    {job.title}
+                  </TableCell>
+                  <TableCell>{job.applicant_count}</TableCell>
+                  <TableCell>{job.postingDate}</TableCell>
+                  <TableCell>{job.expirationDate}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={job.status.charAt(0).toUpperCase() + job.status.slice(1)}
+                      size="small"
+                      sx={getStatusColor(job.status)}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <IconButton size="small" onClick={(e) => handleMenuClick(e, job.id)}>
+                      <MoreHorizIcon />
+                    </IconButton>
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {paginatedData.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center">
-                      No jobs found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  paginatedData.map((job: Job) => (
-                    <TableRow key={job.id} hover>
-                      <TableCell sx={{ fontWeight: 500 }}>{job.id}</TableCell>
-                      <TableCell>
-                        {/* <Link
-                          href={`/dashboard/applications/${job.id}`}
-                          style={{
-                            textDecoration: "none",
-                            color: "#E61C31",
-                            fontWeight: 500,
-                            cursor: "pointer",
-                          }}
-                        > */}
-                          {job.title}
-                        {/* </Link> */}
-                      </TableCell>
-                      <TableCell>{job.applicant_count}</TableCell>
-                      <TableCell>{job.postingDate}</TableCell>
-                      <TableCell>{job.expirationDate}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={job.status.charAt(0).toUpperCase() + job.status.slice(1)}
-                          size="small"
-                          sx={getStatusColor(job.status)}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <IconButton size="small" onClick={(e) => handleMenuClick(e, job.id)}>
-                          <MoreHorizIcon />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
           {/* Pagination */}
           <CustomPagination

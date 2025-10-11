@@ -38,6 +38,20 @@ interface TalentTableProps {
 }
 
 export function TalentTable({ talents, onViewProfile }: TalentTableProps) {
+  // Helper function to compute initials from the name with a space
+  const getInitials = (name: string) => {
+    if (!name) return "T";
+    const nameParts = name.trim().split(" ");
+    if (nameParts.length === 1) {
+      return nameParts[0].charAt(0).toUpperCase();
+    }
+    return (
+      nameParts[0].charAt(0).toUpperCase() +
+      " " +
+      (nameParts[1] ? nameParts[1].charAt(0).toUpperCase() : "")
+    );
+  };
+
   return (
     <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #E5E7EB" }}>
       <Table>
@@ -54,13 +68,9 @@ export function TalentTable({ talents, onViewProfile }: TalentTableProps) {
             <TableRow key={talent.id} hover>
               <TableCell>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                  <Avatar sx={{ width: 32, height: 32 }}>
-                    {talent.name
-                      ? talent.name.split(" ")[0].charAt(0).toUpperCase()
-                      : "T"}
-                  </Avatar>
+                 
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    {talent.name ? talent.name.split(" ")[0] : "Unnamed Talent"}
+                    {getInitials(talent.name)}
                   </Typography>
                 </Box>
               </TableCell>

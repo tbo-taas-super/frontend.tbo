@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import { getCurrentUser, updateUser, uploadFile } from '@/@core/services/user';
 import {
@@ -44,6 +45,7 @@ const MyProfileTab = () => {
     professional_summary: '',
     skills: [] as string[],
     education: [] as EducationEntry[],
+    years_experience: '', // Add years_experience to state
   });
   const [tempImageUrl, setTempImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +82,7 @@ const MyProfileTab = () => {
             professional_summary: user.professional_summary || '',
             skills: user.skills || [],
             education: user.education ? JSON.parse(user.education) : [],
+            years_experience: user.years_experience?.toString() || '', // Initialize from user data
           });
         }
       } catch (error) {
@@ -186,14 +189,15 @@ const MyProfileTab = () => {
   const savePersonalInfo = async () => {
     if (!userId) return;
     try {
-      const { profile_image, phone_number, ...personalInfo } = formData;
+      const { profile_image, phone_number, years_experience, ...personalInfo } = formData;
       const fullPhoneNumber = `${selectedCountryCode}${phone_number}`.replace(/\s/g, '');
       await updateUser(userId, {
         ...personalInfo,
         phone_number: fullPhoneNumber,
         professional_summary: formData.professional_summary,
         skills: formData.skills,
-        education: JSON.stringify(formData.education), // Stringify the education array
+        education: JSON.stringify(formData.education),
+        years_experience: years_experience ? parseInt(years_experience) : null, // Convert to integer
       });
       setEditable(false);
       setSuccess('Personal information updated successfully!');
@@ -417,6 +421,23 @@ const MyProfileTab = () => {
                 disabled={!editable}
                 fullWidth
                 inputProps={{ style: { fontSize: '12px' } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Typography sx={{ fontSize: '12px', fontWeight: 500, mb: '5px' }}>Years of Experience</Typography>
+              <TextField
+                name="years_experience"
+                type="number"
+                value={formData.years_experience}
+                onChange={handleChange}
+                placeholder="Enter Years of Experience"
+                disabled={!editable}
+                fullWidth
+                inputProps={{ 
+                  style: { fontSize: '12px' },
+                  min: 0,
+                  max: 50,
+                }}
               />
             </Grid>
           </Grid>
